@@ -6,8 +6,12 @@
       url = "github:edolstra/flake-compat";
       flake = false;
     };
+    amazonka-repo = {
+      url = "github:brendanhay/amazonka/f73a957d05f64863e867cf39d0db260718f0fadd";
+      flake = false;
+    };
   };
-  outputs = inputs@{ self, nixpkgs, utils, ... }:
+  outputs = inputs@{ self, nixpkgs, utils, amazonka-repo, ... }:
     utils.lib.eachDefaultSystem (system:
       let
         ghcFor = pkgs: pkgs.haskell.packages.ghcjs;
@@ -30,11 +34,38 @@
         haskellOverrides = hfinal: hprev:
           with pkgs.haskell.lib;
           {
+            mkDerivation = args: hprev.mkDerivation ({
+              doCheck = false;
+              doBenchmark = false;
+              doHoogle = false;
+              doHaddock = false;
+              enableLibraryProfiling = false;
+              enableExecutableProfiling = false;
+            } // args);
+
+            entropy = overrideCabal (hprev.entropy) (drv: {
+              libraryHaskellDepends = with hfinal; [ ghcjs-dom jsaddle ];
+            }) ;
+
+            streamly = hfinal.streamly_0_8_3; # TODO :Get master
+
             ghcjs-fetch =
               addBuildDepend
                 (doJailbreak (dontCheck hprev.ghcjs-fetch))
                 [ hfinal.ghcjs-base ];
+
             try-ghcjs = hfinal.callCabal2nix "try-ghcjs" ./. {};
+
+            Cabal = hfinal.Cabal_3_4_1_0;
+
+            xml-conduit = dontCheck (hprev.xml-conduit);
+
+            amazonka =  (hfinal.callCabal2nix "amazonka" "${amazonka-repo}/lib/amazonka" {});
+            amazonka-core =  (hfinal.callCabal2nix "amazonka-core" "${amazonka-repo}/lib/amazonka-core" {});
+            amazonka-s3 =  (hfinal.callCabal2nix "amazonka-s3" "${amazonka-repo}/lib/services/amazonka-s3" {});
+            amazonka-sso =  (hfinal.callCabal2nix "amazonka-sso" "${amazonka-repo}/lib/services/amazonka-sso" {});
+            amazonka-test =  (hfinal.callCabal2nix "amazonka-test" "${amazonka-repo}/lib/amazonka-test" {});
+            amazonka-sts =  (hfinal.callCabal2nix "amazonka-sts" "${amazonka-repo}/lib/services/amazonka-sts" {});
           };
         overlays = [ emscripten-overlay ];
         hp = ghcFor pkgs;

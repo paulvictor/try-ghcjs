@@ -94,7 +94,12 @@ executable try-ghcjs
         base,
         try-ghcjs,
         aeson,
-        lens-aeson
+        lens-aeson,
+        text,
+        bytestring
+--         conduit,
+--         amazonka
+--         streamly
 
     -- Directories containing source files.
     hs-source-dirs:   app

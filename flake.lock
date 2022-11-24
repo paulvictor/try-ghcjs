@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "amazonka-repo": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1645006378,
+        "narHash": "sha256-m6oz17c+VxO8hvnaAEZmq6QGAULNLjjjoL2kvmCu8t8=",
+        "owner": "brendanhay",
+        "repo": "amazonka",
+        "rev": "f73a957d05f64863e867cf39d0db260718f0fadd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "brendanhay",
+        "repo": "amazonka",
+        "rev": "f73a957d05f64863e867cf39d0db260718f0fadd",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -34,6 +51,7 @@
     },
     "root": {
       "inputs": {
+        "amazonka-repo": "amazonka-repo",
         "flake-compat": "flake-compat",
         "nixpkgs": "nixpkgs",
         "utils": "utils"
