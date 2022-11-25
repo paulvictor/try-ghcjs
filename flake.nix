@@ -127,12 +127,8 @@
                   (!isGhcjs)
                   (with haskellPkgs;
                     [ (legacyPackages.haskell.lib.overrideCabal ghcid (_: { enableSeparateBinOutput = false; }))
-                      haskell-language-server
-                      fourmolu
                       hlint
-                      legacyPackages.nixpkgs-fmt
-                      hp2html
-                      hp2pretty ]);
+                      legacyPackages.nixpkgs-fmt ]);
           in { inherit haskellOverrides shellDeps; };
         haskellOverridesFor = ghc: (forGHC { inherit ghc; }).haskellOverrides;
         haskellPkgs = ghc: legacyPackages.haskell.packages.${ghc}.extend (haskellOverridesFor ghc);
