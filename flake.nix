@@ -22,7 +22,6 @@
   outputs = inputs@{ self, nixpkgs, utils, amazonka-repo, ... }:
     utils.lib.eachDefaultSystem (system:
       let
-        ghcFor = pkgs: pkgs.haskell.packages.ghcjs;
         emscripten-overlay = final: prev: {
           emscripten = prev.emscripten.overrideAttrs(_: {
             version = "3.1.14";
@@ -34,81 +33,129 @@
             };
           });
         };
-        pkgs =
+        overlays = [ emscripten-overlay ];
+        legacyPackages =
           import nixpkgs {
             inherit system overlays;
             config = { allowBroken = true; };
           };
-        xml-conduit-patch = pkgs.fetchurl {
+        xml-conduit-patch = legacyPackages.fetchurl {
           url = "https://patch-diff.githubusercontent.com/raw/snoyberg/xml/pull/171.patch";
           sha256 = "1kb38dys0q2qmrwx1scajbfk01v07cj90k5fbmkg6fgl9j278jwm";
         };
-        haskellOverrides = hfinal: hprev:
-          with pkgs.haskell.lib;
-          {
-            mkDerivation = args: hprev.mkDerivation ({
-              doCheck = false;
-              doBenchmark = false;
-              doHoogle = false;
-              doHaddock = false;
-              enableLibraryProfiling = false;
-              enableExecutableProfiling = false;
-            } // args);
+        forGHC = { pkgs ? legacyPackages, ghc }:
+          let
+            isGhcjs = pkgs.haskell.compiler.${ghc}.isGhcjs or false;
+            nixlib = pkgs.lib;
+            haskellOverrides = hfinal: hprev:
+              with pkgs.haskell.lib;
+              {
+                mkDerivation = args: hprev.mkDerivation (
+                  (nixlib.optionalAttrs
+                    isGhcjs
+                    {
+                      doCheck = false;
+                      doBenchmark = false;
+                      doHoogle = false;
+                      doHaddock = false;
+                      enableLibraryProfiling = false;
+                      enableExecutableProfiling = false;
+                    }) // args);
 
-            entropy = overrideCabal (hprev.entropy) (drv: {
-              libraryHaskellDepends = with hfinal; [ ghcjs-dom jsaddle ];
-            }) ;
+                entropy = overrideCabal (hprev.entropy) (drv: {
+                  libraryHaskellDepends =
+                    with hfinal; [ ghcjs-dom jsaddle ]; });
 
-            streamly-core = doJailbreak (hfinal.callCabal2nix "streamly-core" "${inputs.streamly-repo}/core" {});
+                streamly-core = doJailbreak (hfinal.callCabal2nix "streamly-core" "${inputs.streamly-repo}/core" {});
 
-            streamly = hfinal.callCabal2nix "streamly" inputs.streamly-repo {};
+                streamly = hfinal.callCabal2nix "streamly" inputs.streamly-repo {};
 
-            ghcjs-base =
+                ghcjs-base =
+                  let
+                    removeOldAeson = x:
+                      with nixlib;
+                      overrideCabal x (old: {
+                        libraryHaskellDepends = filter(drv: drv == null ||  !(hasPrefix "aeson" drv.name)) x.getCabalDeps.libraryHaskellDepends;
+                      });
+                  in
+                    assert nixlib.assertMsg isGhcjs "ghcjs-base only for ghcjs, not for ${toString ghc}";
+                      addBuildDepend
+                        (removeOldAeson hprev.ghcjs-base)
+                        hfinal.aeson;
+
+                ghcjs-fetch =
+                  assert nixlib.assertMsg isGhcjs "ghcjs-fetch only for ghcjs, not for ${toString ghc}";
+                    addBuildDepend
+                      (doJailbreak (hprev.ghcjs-fetch))
+                      [ hfinal.ghcjs-base ];
+
+                try-ghcjs =
+                  let
+                    drv = hfinal.callCabal2nix "try-ghcjs" ./. {};
+                  in
+                    if isGhcjs
+                    then
+                      overrideCabal drv (old: {
+                        postInstall =
+                          (old.postInstall or "") +
+                          ''${pkgs.closurecompiler}/bin/closure-compiler $out/bin/try-ghcjs.jsexe/all.js  --jscomp_off=checkVars --externs=$out/bin/try-ghcjs.jsexe/all.js.externs > $out/bin/try-ghcjs.jsexe/all.min.js'';
+                      })
+                    else drv;
+
+                Cabal = hfinal.Cabal_3_4_1_0;
+
+                xml-conduit =
+                  if isGhcjs
+                  then
+                    appendPatch (overrideSrc hprev.xml-conduit { src = "${inputs.xml-hs-repo}/xml-conduit"; }) [ ./nix/171.patch ]
+                  else
+                    hprev.xml-conduit;
+
+                amazonka =  (hfinal.callCabal2nix "amazonka" "${amazonka-repo}/lib/amazonka" {});
+                amazonka-core =  (hfinal.callCabal2nix "amazonka-core" "${amazonka-repo}/lib/amazonka-core" {});
+                amazonka-s3 =  (hfinal.callCabal2nix "amazonka-s3" "${amazonka-repo}/lib/services/amazonka-s3" {});
+                amazonka-sso =  (hfinal.callCabal2nix "amazonka-sso" "${amazonka-repo}/lib/services/amazonka-sso" {});
+                amazonka-test =  (hfinal.callCabal2nix "amazonka-test" "${amazonka-repo}/lib/amazonka-test" {});
+                amazonka-sts =  (hfinal.callCabal2nix "amazonka-sts" "${amazonka-repo}/lib/services/amazonka-sts" {});
+              };
+            shellDeps =
               let
-                inherit (pkgs) lib;
-                removeOldAeson = x:
-                  overrideCabal x (old: {
-                    libraryHaskellDepends = lib.filter(drv: drv == null ||  !(lib.hasPrefix "aeson" drv.name)) x.getCabalDeps.libraryHaskellDepends;
-                  });
+                haskellPkgs = legacyPackages.haskell.packages.${ghc};
               in
-              addBuildDepend
-                (removeOldAeson hprev.ghcjs-base)
-                hfinal.aeson;
-
-            ghcjs-fetch =
-              addBuildDepend
-                (doJailbreak (hprev.ghcjs-fetch))
-                [ hfinal.ghcjs-base ];
-
-            try-ghcjs = hfinal.callCabal2nix "try-ghcjs" ./. {};
-
-            Cabal = hfinal.Cabal_3_4_1_0;
-
-            xml-conduit = appendPatch (overrideSrc hprev.xml-conduit { src = "${inputs.xml-hs-repo}/xml-conduit"; }) [ ./nix/171.patch ];
-
-            amazonka =  (hfinal.callCabal2nix "amazonka" "${amazonka-repo}/lib/amazonka" {});
-            amazonka-core =  (hfinal.callCabal2nix "amazonka-core" "${amazonka-repo}/lib/amazonka-core" {});
-            amazonka-s3 =  (hfinal.callCabal2nix "amazonka-s3" "${amazonka-repo}/lib/services/amazonka-s3" {});
-            amazonka-sso =  (hfinal.callCabal2nix "amazonka-sso" "${amazonka-repo}/lib/services/amazonka-sso" {});
-            amazonka-test =  (hfinal.callCabal2nix "amazonka-test" "${amazonka-repo}/lib/amazonka-test" {});
-            amazonka-sts =  (hfinal.callCabal2nix "amazonka-sts" "${amazonka-repo}/lib/services/amazonka-sts" {});
+                [ legacyPackages.cabal-install ] ++
+                pkgs.lib.optional
+                  (!isGhcjs)
+                  (with haskellPkgs;
+                    [ (legacyPackages.haskell.lib.overrideCabal ghcid (_: { enableSeparateBinOutput = false; }))
+                      haskell-language-server
+                      fourmolu
+                      hlint
+                      legacyPackages.nixpkgs-fmt
+                      hp2html
+                      hp2pretty ]);
+          in { inherit haskellOverrides shellDeps; };
+        haskellOverridesFor = ghc: (forGHC { inherit ghc; }).haskellOverrides;
+        haskellPkgs = ghc: legacyPackages.haskell.packages.${ghc}.extend (haskellOverridesFor ghc);
+        shellFor = ghc:
+          (haskellPkgs ghc).shellFor {
+            packages = p: [ p.try-ghcjs ];
+            nativeBuildInputs = (forGHC { inherit ghc; }).shellDeps;
           };
-        overlays = [ emscripten-overlay ];
-        hp = ghcFor pkgs;
-        shellDeps = hp:
-          with hp;
-          [ cabal-install
-          ];
-        try-ghcjs = (hp.extend haskellOverrides).try-ghcjs;
-
+        compilers =
+          [ "ghc8107" "ghcjs" ];
       in
         {
-          devShell =
-            (hp.extend haskellOverrides).shellFor {
-              packages = p: [ p.try-ghcjs ];
-              nativeBuildInputs = with pkgs; [ pkgs.cabal-install ];
-          };
-          legacyPackages = pkgs;
+          packages.tryghc-js =
+            builtins.listToAttrs
+              (map (c: legacyPackages.lib.nameValuePair c (haskellPkgs c).try-ghcjs) compilers);
+          devShells =
+            let
+              forCompilers =
+                builtins.listToAttrs
+                  (map (c: legacyPackages.lib.nameValuePair c (shellFor c)) compilers);
+            in (forCompilers // { default = forCompilers.ghc8107; });
+#           devShells.default = self.devShells.ghc8107;
+          inherit legacyPackages;
         }
     );
 }
