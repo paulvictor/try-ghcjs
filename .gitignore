@@ -21,4 +21,6 @@ cabal.project.local
 cabal.project.local~
 .HTF/
 .ghc.environment.*
-node_modules
+node_modulesresult
+/result
+/node_modules/

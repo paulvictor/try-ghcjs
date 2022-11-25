@@ -100,7 +100,11 @@ executable try-ghcjs
         conduit,
         amazonka,
         streamly,
+
+    if impl(ghcjs)
+      build-depends:
         ghcjs-dom,
+        ghcjs-base,
         jsaddle,
 
     -- Directories containing source files.

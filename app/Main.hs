@@ -5,6 +5,11 @@ import qualified MyLib (someFunc)
 import Data.Foldable
 
 #ifdef __GHCJS__
+import GHCJS.Types (JSVal)
+
+
+foreign import javascript unsafe
+  "require($1)" require :: JSVal -> JSVal
 foreign import javascript unsafe        "console.log($1);" writeNumber :: Int -> IO ()
 -- foreign import javascript interruptible "setTimeout($c, $1);"         delay       :: Int -> IO ()
 foreign import javascript interruptible
@@ -18,6 +23,7 @@ foreign import javascript interruptible
 writeNumber = error "writeNumber: only available from JavaScript"
 delay = error "delay: only available from JavaScript"
 #endif
+
 
 main :: IO ()
 main = do

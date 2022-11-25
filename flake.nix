@@ -62,9 +62,11 @@
                       enableExecutableProfiling = false;
                     }) // args);
 
-                entropy = overrideCabal (hprev.entropy) (drv: {
-                  libraryHaskellDepends =
-                    with hfinal; [ ghcjs-dom jsaddle ]; });
+                entropy = overrideCabal (hprev.entropy) (drv:
+                  nixlib.optionalAttrs isGhcjs {
+                    libraryHaskellDepends =
+                      with hfinal; [ ghcjs-dom jsaddle ];
+                  });
 
                 streamly-core = doJailbreak (hfinal.callCabal2nix "streamly-core" "${inputs.streamly-repo}/core" {});
 
@@ -135,6 +137,7 @@
         shellFor = ghc:
           (haskellPkgs ghc).shellFor {
             packages = p: [ p.try-ghcjs ];
+            withHoogle = (ghc != "ghcjs");
             nativeBuildInputs = (forGHC { inherit ghc; }).shellDeps;
           };
         compilers =
