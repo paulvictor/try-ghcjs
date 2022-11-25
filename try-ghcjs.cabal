@@ -96,10 +96,12 @@ executable try-ghcjs
         aeson,
         lens-aeson,
         text,
-        bytestring
---         conduit,
---         amazonka
---         streamly
+        bytestring,
+        conduit,
+        amazonka,
+        streamly,
+        ghcjs-dom,
+        jsaddle,
 
     -- Directories containing source files.
     hs-source-dirs:   app

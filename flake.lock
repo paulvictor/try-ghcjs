@@ -54,7 +54,26 @@
         "amazonka-repo": "amazonka-repo",
         "flake-compat": "flake-compat",
         "nixpkgs": "nixpkgs",
-        "utils": "utils"
+        "streamly-repo": "streamly-repo",
+        "utils": "utils",
+        "xml-hs-repo": "xml-hs-repo"
+      }
+    },
+    "streamly-repo": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1668953112,
+        "narHash": "sha256-PKz7FxqJBhlO7yb0lfabbjF6vhak9OZ2kwmGwsmwVr0=",
+        "owner": "composewell",
+        "repo": "streamly",
+        "rev": "a11e92b963f1fc672493c86ab6e668a63e8daf90",
+        "type": "github"
+      },
+      "original": {
+        "owner": "composewell",
+        "ref": "master",
+        "repo": "streamly",
+        "type": "github"
       }
     },
     "utils": {
@@ -69,6 +88,23 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "xml-hs-repo": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1667141335,
+        "narHash": "sha256-3q2eJ8Egu6k/8CBZPFpamk2hLeHgF0HpKYLhA+v1eKI=",
+        "owner": "snoyberg",
+        "repo": "xml",
+        "rev": "6dc4740b771d294c38f29456f53560f4026d7e7a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "snoyberg",
+        "ref": "master",
+        "repo": "xml",
         "type": "github"
       }
     }

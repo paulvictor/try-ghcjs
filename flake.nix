@@ -10,6 +10,14 @@
       url = "github:brendanhay/amazonka/f73a957d05f64863e867cf39d0db260718f0fadd";
       flake = false;
     };
+    xml-hs-repo = {
+      url = "github:snoyberg/xml/master";
+      flake = false;
+    };
+    streamly-repo = {
+      url = "github:composewell/streamly/master";
+      flake = false;
+    };
   };
   outputs = inputs@{ self, nixpkgs, utils, amazonka-repo, ... }:
     utils.lib.eachDefaultSystem (system:
@@ -31,6 +39,10 @@
             inherit system overlays;
             config = { allowBroken = true; };
           };
+        xml-conduit-patch = pkgs.fetchurl {
+          url = "https://patch-diff.githubusercontent.com/raw/snoyberg/xml/pull/171.patch";
+          sha256 = "1kb38dys0q2qmrwx1scajbfk01v07cj90k5fbmkg6fgl9j278jwm";
+        };
         haskellOverrides = hfinal: hprev:
           with pkgs.haskell.lib;
           {
@@ -47,18 +59,32 @@
               libraryHaskellDepends = with hfinal; [ ghcjs-dom jsaddle ];
             }) ;
 
-            streamly = hfinal.streamly_0_8_3; # TODO :Get master
+            streamly-core = doJailbreak (hfinal.callCabal2nix "streamly-core" "${inputs.streamly-repo}/core" {});
+
+            streamly = hfinal.callCabal2nix "streamly" inputs.streamly-repo {};
+
+            ghcjs-base =
+              let
+                inherit (pkgs) lib;
+                removeOldAeson = x:
+                  overrideCabal x (old: {
+                    libraryHaskellDepends = lib.filter(drv: drv == null ||  !(lib.hasPrefix "aeson" drv.name)) x.getCabalDeps.libraryHaskellDepends;
+                  });
+              in
+              addBuildDepend
+                (removeOldAeson hprev.ghcjs-base)
+                hfinal.aeson;
 
             ghcjs-fetch =
               addBuildDepend
-                (doJailbreak (dontCheck hprev.ghcjs-fetch))
+                (doJailbreak (hprev.ghcjs-fetch))
                 [ hfinal.ghcjs-base ];
 
             try-ghcjs = hfinal.callCabal2nix "try-ghcjs" ./. {};
 
             Cabal = hfinal.Cabal_3_4_1_0;
 
-            xml-conduit = dontCheck (hprev.xml-conduit);
+            xml-conduit = appendPatch (overrideSrc hprev.xml-conduit { src = "${inputs.xml-hs-repo}/xml-conduit"; }) [ ./nix/171.patch ];
 
             amazonka =  (hfinal.callCabal2nix "amazonka" "${amazonka-repo}/lib/amazonka" {});
             amazonka-core =  (hfinal.callCabal2nix "amazonka-core" "${amazonka-repo}/lib/amazonka-core" {});
@@ -77,7 +103,6 @@
 
       in
         {
-          inherit try-ghcjs ghcFor hp overlays haskellOverrides;
           devShell =
             (hp.extend haskellOverrides).shellFor {
               packages = p: [ p.try-ghcjs ];
