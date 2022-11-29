@@ -1,0 +1,12 @@
++ https://github.com/ghcjs/ghcjs-base
++ https://gist.github.com/osoftware/5aad2ca13798cbc5919b43aacb0e33e1
++ https://github.com/ghcjs/ghcjs/wiki/Deployment
++ http://www.edsko.net/2015/02/14/atom-haskell/
++ https://github.com/niteria/elevator-game/blob/master/build
++ https://github.com/niteria/elevator-game/blob/9ea5081561f51836734cdafd916fd06310d64876/FFI.hs#L12-L13
++ https://github.com/niteria/elevator-game/blob/9ea5081561f51836734cdafd916fd06310d64876/Main.hs#L35-L36
++ https://github.com/niteria/elevator-game
++ https://github.com/niteria/elevator-game/blob/master/build#L5
++ https://gist.github.com/osoftware/5aad2ca13798cbc5919b43aacb0e33e1
++ https://github.com/ghcjs/ghcjs-base/blob/master/GHCJS/Foreign/Callback.hs
++ https://github.com/ghcjs/ghcjs/issues/752
