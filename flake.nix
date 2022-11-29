@@ -100,7 +100,7 @@
                       overrideCabal drv (old: {
                         postInstall =
                           (old.postInstall or "") +
-                          ''${pkgs.closurecompiler}/bin/closure-compiler $out/bin/try-ghcjs.jsexe/all.js  --jscomp_off=checkVars --externs=$out/bin/try-ghcjs.jsexe/all.js.externs > $out/bin/try-ghcjs.jsexe/all.min.js'';
+                          ''${pkgs.closurecompiler}/bin/closure-compiler $out/bin/try-ghcjs.jsexe/all.js -O ADVANCED  --jscomp_off=checkVars --externs=$out/bin/try-ghcjs.jsexe/all.js.externs > $out/bin/try-ghcjs.jsexe/all.min.js'';
                       })
                     else drv;
 

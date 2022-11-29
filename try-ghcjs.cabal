@@ -54,6 +54,17 @@ extra-doc-files:    CHANGELOG.md
 common warnings
     ghc-options: -Wall
 
+-- library internal
+--     import:           warnings
+--     exposed-modules:  Internal
+--     -- Other library packages from which modules are imported.
+--     build-depends:    base ^>=4.14.3.0
+
+--     -- Directories containing source files.
+--     hs-source-dirs:   internal
+
+--     -- Base language which the package is written in.
+--     default-language: Haskell2010
 library
     -- Import common warning flags.
     import:           warnings
@@ -100,6 +111,7 @@ executable try-ghcjs
         conduit,
         amazonka,
         streamly,
+        zlib,
 
     if impl(ghcjs)
       build-depends:

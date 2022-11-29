@@ -24,3 +24,5 @@ cabal.project.local~
 node_modulesresult
 /result
 /node_modules/
+*.js_hi
+/*js_hi
