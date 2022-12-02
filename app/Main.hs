@@ -2,8 +2,25 @@
 {-# LANGUAGE JavaScriptFFI, CPP #-}
 module Main (main) where
 
+import Data.Foldable
+import API
+import qualified Data.JSString as JSStr
+import Data.JSString (JSString)
+import Control.Concurrent (threadDelay)
+
+foreign import javascript safe
+  "global[$1]" getCallbackByName :: JSString -> (JSString -> IO ())
+
 main :: IO ()
-main = putStrLn "Dummy main"
+main = do
+  let
+    cb = getCallbackByName (JSStr.pack "theCallback")
+  setupMkCode cb
+
+
+--   for_ [ 1,2,3,4,5] (\i -> threadDelay (1000 * 1000 * 50) *> print i)
+--   readFile "~/foobar" >>= print
+--   putStrLn "Dummy main"
 -- module Main(main) where
 
 -- import qualified MyLib (someFunc)
@@ -50,7 +67,6 @@ main = putStrLn "Dummy main"
 --     input :: ByteString
 --     input = fold $ replicate 10000 "foobarbaz"
 -- --   mapM_ (\x -> writeNumber x >> delay 50) [1..1000]
---   for_ [ 1,2,3,4,5] print
 
 --   add 3 4
 

@@ -1,0 +1,4 @@
+(function() {
+  HASKELL
+  return mkCode();
+})()

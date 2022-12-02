@@ -43,6 +43,7 @@
           url = "https://patch-diff.githubusercontent.com/raw/snoyberg/xml/pull/171.patch";
           sha256 = "1kb38dys0q2qmrwx1scajbfk01v07cj90k5fbmkg6fgl9j278jwm";
         };
+        # Check https://github.com/NixOS/nixpkgs/pull/151689 for ghcjs
         forGHC = { pkgs ? legacyPackages, ghc }:
           let
             isGhcjs = pkgs.haskell.compiler.${ghc}.isGhcjs or false;
