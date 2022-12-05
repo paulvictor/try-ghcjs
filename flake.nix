@@ -96,12 +96,20 @@
                       (doJailbreak (hprev.ghcjs-fetch))
                       [ hfinal.ghcjs-base ];
 
-                network = overrideCabal (hprev.network) (drv: {
-                  src = inputs.network-hs-repo;
-                  preCompileBuildDriver = ''
-                    ${pkgs.autoconf}/bin/autoreconf -i
-                  '';
-                });
+                network =
+                  let
+                    ghcjs-patch = ./nix/ghcjs-network.patch
+#                       pkgs.fetchurl {
+#                         url = https://github.com/haskell/network/commit/80ea53f81a81193403cb9d3445cd874232455696.patch;
+#                         sha256 = lib.fakeSha256;
+#                       };
+                  in
+                    overrideCabal (hprev.network) (drv: {
+                      src = pkgs.applyPatches { src = inputs.network-hs-repo; patches = [ghcjs-patch]; name = "ghcjs"; };
+                      preCompileBuildDriver = ''
+                        ${pkgs.autoconf}/bin/autoreconf -i
+                      '';
+                    });
 
                 try-ghcjs =
                   let
