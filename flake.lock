@@ -33,6 +33,23 @@
         "type": "github"
       }
     },
+    "network-hs-repo": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1661388860,
+        "narHash": "sha256-XZyzs7ydVsATw2lK/+3ATrILRwA1H2acnpmCLinqr3I=",
+        "owner": "haskell",
+        "repo": "network",
+        "rev": "4d82bf124e307d934de41b97652cca829fa37687",
+        "type": "github"
+      },
+      "original": {
+        "owner": "haskell",
+        "ref": "master",
+        "repo": "network",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1669076005,
@@ -53,6 +70,7 @@
       "inputs": {
         "amazonka-repo": "amazonka-repo",
         "flake-compat": "flake-compat",
+        "network-hs-repo": "network-hs-repo",
         "nixpkgs": "nixpkgs",
         "streamly-repo": "streamly-repo",
         "utils": "utils",

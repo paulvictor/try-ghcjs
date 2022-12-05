@@ -18,9 +18,13 @@
       url = "github:composewell/streamly/master";
       flake = false;
     };
+    network-hs-repo = {
+      url = "github:haskell/network/master";
+      flake = false;
+    };
   };
-  outputs = inputs@{ self, nixpkgs, utils, amazonka-repo, ... }:
-    utils.lib.eachDefaultSystem (system:
+  outputs = inputs@{ self, amazonka-repo, ... }:
+    inputs.utils.lib.eachDefaultSystem (system:
       let
         emscripten-overlay = final: prev: {
           emscripten = prev.emscripten.overrideAttrs(_: {
@@ -35,7 +39,7 @@
         };
         overlays = [ emscripten-overlay ];
         legacyPackages =
-          import nixpkgs {
+          import inputs.nixpkgs {
             inherit system overlays;
             config = { allowBroken = true; };
           };
@@ -91,6 +95,13 @@
                     addBuildDepend
                       (doJailbreak (hprev.ghcjs-fetch))
                       [ hfinal.ghcjs-base ];
+
+                network = overrideCabal (hprev.network) (drv: {
+                  src = inputs.network-hs-repo;
+                  preCompileBuildDriver = ''
+                    ${pkgs.autoconf}/bin/autoreconf -i
+                  '';
+                });
 
                 try-ghcjs =
                   let
