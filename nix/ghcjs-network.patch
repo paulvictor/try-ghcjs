@@ -1,31 +1,13 @@
-diff --git a/config.sub b/config.sub
-index b67c27d..4942280 100644
---- a/config.sub
-+++ b/config.sub
-@@ -4,7 +4,7 @@
+diff --git a/configure.ac b/configure.ac
+index cc9cef4..9576b9c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -61,6 +61,6 @@ AC_CONFIG_SRCDIR([include/HsNet.h])
  
- # shellcheck disable=SC2006,SC2268 # see below for rationale
+ AC_CONFIG_HEADERS([include/HsNetworkConfig.h])
  
--timestamp='2021-08-14'
-+timestamp='2022-12-05'
+-AC_CANONICAL_HOST
++dnl AC_CANONICAL_HOST
  
- # This file is free software; you can redistribute it and/or modify it
- # under the terms of the GNU General Public License as published by
-@@ -1199,7 +1199,7 @@ case $cpu-$vendor in
- 			| hexagon \
- 			| i370 | i*86 | i860 | i960 | ia16 | ia64 \
- 			| ip2k | iq2000 \
--            | js \
-+                        | js \
- 			| k1om \
- 			| le32 | le64 \
- 			| lm32 \
-@@ -1750,7 +1750,7 @@ case $os in
- 	     | onefs* | tirtos* | phoenix* | fuchsia* | redox* | bme* \
- 	     | midnightbsd* | amdhsa* | unleashed* | emscripten* | wasi* \
- 	     | nsk* | powerunix* | genode* | zvmoe* | qnx* | emx* | zephyr* \
--         | ghcjs)
-+             | ghcjs | js-unknown-ghcjs )
- 		;;
- 	# This one is extra strict with allowed versions
- 	sco3.2v2 | sco3.2v[4-9]* | sco5v6*)
+ AC_ARG_WITH([cc],
+             [C compiler],

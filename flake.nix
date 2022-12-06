@@ -98,14 +98,10 @@
 
                 network =
                   let
-                    ghcjs-patch = ./nix/ghcjs-network.patch
-#                       pkgs.fetchurl {
-#                         url = https://github.com/haskell/network/commit/80ea53f81a81193403cb9d3445cd874232455696.patch;
-#                         sha256 = lib.fakeSha256;
-#                       };
+                    ghcjs-patch = ./nix/ghcjs-network.patch;
                   in
                     overrideCabal (hprev.network) (drv: {
-                      src = pkgs.applyPatches { src = inputs.network-hs-repo; patches = [ghcjs-patch]; name = "ghcjs"; };
+                      src = pkgs.applyPatches { src = inputs.network-hs-repo; patches = [ghcjs-patch]; name = "ghcjs-host-disable"; };
                       preCompileBuildDriver = ''
                         ${pkgs.autoconf}/bin/autoreconf -i
                       '';
@@ -164,6 +160,7 @@
           [ "ghc8107" "ghcjs" ];
       in
         {
+          inherit forGHC haskellPkgs;
           packages.tryghc-js =
             builtins.listToAttrs
               (map (c: legacyPackages.lib.nameValuePair c (haskellPkgs c).try-ghcjs) compilers);
